@@ -108,7 +108,7 @@ function HomePage() {
                     YOUR CAREER JOURNEY
                   </span>
 
-                  <h3>Welcome back, Geetha 👋</h3>
+                  <h3>Welcome back 👋</h3>
                 </div>
 
                 <div className="profile-circle">
