@@ -1,0 +1,435 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  STUDENT
+  ALUMNI
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum MentorshipRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum OpportunityType {
+  INTERNSHIP
+  JOB
+  HACKATHON
+  SCHOLARSHIP
+  COMPETITION
+  WORKSHOP
+  FELLOWSHIP
+  OTHER
+}
+
+enum OpportunityMode {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  firstName    String
+  lastName     String?
+  role         UserRole
+  status       UserStatus @default(ACTIVE)
+
+  profileImage String?
+  phone        String?
+  location     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentProfile StudentProfile?
+  alumniProfile  AlumniProfile?
+
+  studentSkills StudentSkill[]
+  alumniSkills  AlumniSkill[]
+
+  sentMentorshipRequests     MentorshipRequest[] @relation("StudentRequests")
+  receivedMentorshipRequests MentorshipRequest[] @relation("AlumniRequests")
+
+  studentSessions MentorshipSession[] @relation("StudentSessions")
+  alumniSessions  MentorshipSession[] @relation("AlumniSessions")
+
+  assignedTasks Task[] @relation("StudentTasks")
+  createdTasks  Task[] @relation("CreatedTasks")
+
+  feedbackGiven    Feedback[] @relation("FeedbackGiven")
+  feedbackReceived Feedback[] @relation("FeedbackReceived")
+
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  createdOpportunities Opportunity[]         @relation("CreatedOpportunities")
+  savedOpportunities   OpportunityBookmark[] @relation("SavedOpportunities")
+
+  communityPosts    CommunityPost[]
+  communityLikes    CommunityLike[]
+  communityComments CommunityComment[]
+}
+
+model StudentProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  college        String?
+  degree         String?
+  branch         String?
+  graduationYear Int?
+  careerGoal     String?
+  bio            String?
+  resumeUrl      String?
+  githubUrl      String?
+  linkedinUrl    String?
+  portfolioUrl   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AlumniProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  company         String?
+  designation     String?
+  industry        String?
+  experienceYears Int?
+  bio             String?
+  mentorshipAreas String?
+  availability    String?
+  githubUrl       String?
+  linkedinUrl     String?
+  portfolioUrl    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Skill {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  category    String?
+  description String?
+
+  studentSkills StudentSkill[]
+  alumniSkills  AlumniSkill[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StudentSkill {
+  id        String     @id @default(uuid())
+  studentId String
+  skillId   String
+  level     SkillLevel @default(BEGINNER)
+  years     Float?
+
+  student User  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skill   Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, skillId])
+}
+
+model AlumniSkill {
+  id       String     @id @default(uuid())
+  alumniId String
+  skillId  String
+  level    SkillLevel @default(INTERMEDIATE)
+  years    Float?
+
+  alumni User  @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+  skill  Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([alumniId, skillId])
+}
+
+model MentorshipRequest {
+  id        String @id @default(uuid())
+  studentId String
+  alumniId  String
+
+  careerGoal         String?
+  message            String?
+  compatibilityScore Float?
+  matchReason        String?
+
+  status MentorshipRequestStatus @default(PENDING)
+
+  student User @relation("StudentRequests", fields: [studentId], references: [id], onDelete: Cascade)
+  alumni  User @relation("AlumniRequests", fields: [alumniId], references: [id], onDelete: Cascade)
+
+  sessions MentorshipSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([alumniId])
+  @@index([status])
+}
+
+model MentorshipSession {
+  id                  String @id @default(uuid())
+  mentorshipRequestId String
+  studentId           String
+  alumniId            String
+
+  title       String
+  agenda      String?
+  meetingUrl  String?
+  scheduledAt DateTime
+  duration    Int?
+  status      SessionStatus @default(SCHEDULED)
+
+  summary     String?
+  actionItems String?
+
+  mentorshipRequest MentorshipRequest @relation(fields: [mentorshipRequestId], references: [id], onDelete: Cascade)
+
+  student User @relation("StudentSessions", fields: [studentId], references: [id], onDelete: Cascade)
+  alumni  User @relation("AlumniSessions", fields: [alumniId], references: [id], onDelete: Cascade)
+
+  tasks    Task[]
+  feedback Feedback?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([alumniId])
+  @@index([scheduledAt])
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+
+  studentId String
+  createdBy String
+
+  dueDate     DateTime?
+  completedAt DateTime?
+  sessionId   String?
+
+  student User @relation("StudentTasks", fields: [studentId], references: [id], onDelete: Cascade)
+  creator User @relation("CreatedTasks", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  session MentorshipSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([createdBy])
+  @@index([status])
+}
+
+model Feedback {
+  id        String @id @default(uuid())
+  sessionId String @unique
+
+  givenById    String
+  receivedById String
+
+  rating      Int
+  comments    String?
+  strengths   String?
+  improvement String?
+
+  session MentorshipSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  givenBy    User @relation("FeedbackGiven", fields: [givenById], references: [id], onDelete: Cascade)
+  receivedBy User @relation("FeedbackReceived", fields: [receivedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  senderId   String
+  receiverId String
+
+  content String
+  isRead  Boolean @default(false)
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+  @@index([senderId, receiverId])
+}
+
+model Opportunity {
+  id String @id @default(uuid())
+
+  title       String
+  description String
+
+  company      String?
+  organization String?
+
+  type OpportunityType
+  mode OpportunityMode @default(REMOTE)
+
+  location String?
+
+  skills String?
+
+  salary  String?
+  stipend String?
+
+  deadline DateTime?
+
+  applicationUrl String?
+
+  imageUrl String?
+
+  isActive Boolean @default(true)
+
+  createdBy String
+
+  creator User @relation("CreatedOpportunities", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  savedBy OpportunityBookmark[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([mode])
+  @@index([deadline])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model OpportunityBookmark {
+  id String @id @default(uuid())
+
+  userId        String
+  opportunityId String
+
+  user User @relation("SavedOpportunities", fields: [userId], references: [id], onDelete: Cascade)
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, opportunityId])
+  @@index([userId])
+  @@index([opportunityId])
+}
+
+model CommunityPost {
+  id String @id @default(uuid())
+
+  authorId String
+
+  content  String
+  imageUrl String?
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  likes    CommunityLike[]
+  comments CommunityComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model CommunityLike {
+  id String @id @default(uuid())
+
+  postId String
+  userId String
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model CommunityComment {
+  id String @id @default(uuid())
+
+  postId String
+  userId String
+
+  content String
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+}
