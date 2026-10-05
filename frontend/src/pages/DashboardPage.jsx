@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { Link, Navigate } from "react-router-dom";
+
 import {
   Bell,
   BriefcaseBusiness,
@@ -19,7 +21,9 @@ import {
   Users,
   X,
 } from "lucide-react";
+
 import api from "../services/api";
+
 import "./DashboardPage.css";
 
 function getInitials(name = "") {
@@ -328,6 +332,7 @@ function DashboardPage() {
       day: value.toLocaleDateString("en-IN", {
         day: "2-digit",
       }),
+
       month: value
         .toLocaleDateString("en-IN", {
           month: "short",
@@ -350,6 +355,7 @@ function DashboardPage() {
   }
 
   const firstName = user.firstName || "User";
+
   const fullName = `${user.firstName || ""} ${
     user.lastName || ""
   }`.trim();
@@ -425,8 +431,8 @@ function DashboardPage() {
 
           {isAlumni ? (
             <>
-              <a
-                href="#mentees"
+              <Link
+                to="/mentees"
                 className="dashboard-nav-item"
                 onClick={closeMobileSidebar}
               >
@@ -435,7 +441,7 @@ function DashboardPage() {
                 <span className="nav-count">
                   6
                 </span>
-              </a>
+              </Link>
 
               <Link
                 to="/alumni-skills"
@@ -446,8 +452,8 @@ function DashboardPage() {
                 <span>My Skills</span>
               </Link>
 
-              <a
-                href="#requests"
+              <Link
+                to="/mentorship-requests"
                 className="dashboard-nav-item"
                 onClick={closeMobileSidebar}
               >
@@ -456,16 +462,16 @@ function DashboardPage() {
                 <span className="nav-count">
                   3
                 </span>
-              </a>
+              </Link>
 
-              <a
-                href="#sessions"
+              <Link
+                to="/mentorship-sessions"
                 className="dashboard-nav-item"
                 onClick={closeMobileSidebar}
               >
                 <CalendarDays size={19} />
                 <span>Sessions</span>
-              </a>
+              </Link>
             </>
           ) : (
             <>
@@ -802,9 +808,9 @@ function DashboardPage() {
                       </h3>
                     </div>
 
-                    <a href="#mentees">
+                    <Link to="/mentees">
                       View all
-                    </a>
+                    </Link>
                   </div>
 
                   <div className="mentor-list">
@@ -1049,8 +1055,8 @@ function DashboardPage() {
                 </div>
 
                 <div className="quick-action-grid">
-                  <a
-                    href="#mentees"
+                  <Link
+                    to="/mentees"
                     className="quick-action"
                   >
                     <div>
@@ -1058,11 +1064,12 @@ function DashboardPage() {
                     </div>
 
                     <span>View mentees</span>
-                    <ChevronRight size={17} />
-                  </a>
 
-                  <a
-                    href="#requests"
+                    <ChevronRight size={17} />
+                  </Link>
+
+                  <Link
+                    to="/mentorship-requests"
                     className="quick-action"
                   >
                     <div>
@@ -1074,10 +1081,10 @@ function DashboardPage() {
                     </span>
 
                     <ChevronRight size={17} />
-                  </a>
+                  </Link>
 
-                  <a
-                    href="#sessions"
+                  <Link
+                    to="/mentorship-sessions"
                     className="quick-action"
                   >
                     <div>
@@ -1089,7 +1096,7 @@ function DashboardPage() {
                     </span>
 
                     <ChevronRight size={17} />
-                  </a>
+                  </Link>
 
                   <Link
                     to="/profile"

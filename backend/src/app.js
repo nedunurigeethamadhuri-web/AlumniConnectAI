@@ -55,7 +55,7 @@ app.use(compression());
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -111,7 +111,9 @@ app.use(
 
 // Messages
 app.use("/api/messages", messageRoutes);
+
 app.use("/api/opportunities", opportunityRoutes);
+
 app.use("/api/community", communityRoutes);
 
 app.get("/", (req, res) => {
